@@ -1,98 +1,36 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth, useSession, useUser } from "@clerk/expo";
+import { Redirect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BrandedSplashScreen } from "@/components/onboarding/branded-splash-screen";
+import { hasSeenWelcome } from "@/lib/welcome-storage";
+import { parseSavedSetup, resumeSetupStep } from "@/features/setup/model";
+import { sessionAccess } from "@/lib/session-routing";
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+export default function Index() {
+  const { isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
+  const { session } = useSession();
+  const { user } = useUser();
+  const [seenWelcome, setSeenWelcome] = useState<boolean | null>(null);
+  const [finished, setFinished] = useState(false);
+  const finish = useCallback(() => setFinished(true), []);
+
+  useEffect(() => {
+    let active = true;
+    void hasSeenWelcome().then((seen) => {
+      if (active) setSeenWelcome(seen);
+    });
+    return () => { active = false; };
+  }, []);
+
+  if (finished && seenWelcome !== null) {
+    if (sessionAccess(isSignedIn, session?.currentTask?.key).choosingOrganization) {
+      return <Redirect href={parseSavedSetup(user?.unsafeMetadata.ogadeskSetup)
+        ? "/select-organisation" : `/${resumeSetupStep(user?.unsafeMetadata.ogadeskSetupDraft)}`} />;
+    }
+    if (session?.currentTask) return <Redirect href="/auth-continue" />;
+    if (isSignedIn) return <Redirect href="/account" />;
+    return <Redirect href={seenWelcome ? "/sign-in" : "/onboarding"} />;
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+  return <BrandedSplashScreen onFinish={finish} />;
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OgaDesk dashboard comparisons</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f7f7;color:#10163a;font:15px system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:32px 20px}h1{font-size:28px;margin:0 0 10px}p{color:#62708d;line-height:1.6}nav{display:flex;gap:8px;margin:24px 0}button{border:1px solid #dce7e9;border-radius:20px;background:white;padding:10px 22px;color:#23505a;cursor:pointer;font:inherit}button[aria-selected=true]{background:#008574;color:white;border-color:#008574}.pair{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:810px;margin:auto}h2{font-size:16px;text-align:center}.phone{border:1px solid #dbe5e8;border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 8px 30px #0c343c0c}.reference{position:relative;aspect-ratio:566/1362}.reference img{position:absolute;width:191.873%;max-width:none;left:-45.76%;top:-3.23%}.native img{display:block;width:100%}.links{display:flex;flex-wrap:wrap;gap:15px;margin-top:24px}a{color:#008574}.note{font-size:13px;max-width:810px;margin:20px auto}.badge{display:inline-block;padding:5px 10px;border-radius:12px;background:#e4f4ed;color:#137252;font-size:12px}@media(max-width:500px){main{padding:20px 10px}.pair{gap:10px}nav{gap:5px}button{padding:9px 14px}}
+</style>
+<main>
+<span class="badge">Native React Native · iPhone 14 Pro</span>
+<h1>OgaDesk dashboard review</h1>
+<p>Compare the supplied reference with the latest simulator capture. Manager and Staff follow the approved mapping by permissions.</p>
+<nav aria-label="Dashboard role"><button data-role="owner" aria-selected="true">Owner</button><button data-role="manager" aria-selected="false">Manager</button><button data-role="staff" aria-selected="false">Staff</button></nav>
+<div class="pair"><section><h2>Reference</h2><div class="phone reference"><img id="reference" src="../../opwner-ref.png" alt="Owner reference"></div></section><section><h2>iOS capture</h2><div class="phone native"><img id="capture" src="owner-final.png" alt="Owner native dashboard"></div></section></div>
+<p class="note">The reference phone is taller relative to its width. The native screen scrolls, with the bottom bar fixed. Reference data appears only in development previews. Organisation artwork and some icon details differ.</p>
+<div class="links"><a id="fullReference" href="../../opwner-ref.png">Full reference</a><a id="fullCapture" href="owner-final.png">Full iOS capture</a><a id="earlier" href="owner-pass1.png">First pass</a><a href="../../../docs/dashboards.md">Implementation and validation</a></div>
+</main>
+<script>
+const references={owner:'opwner-ref.png',manager:'staff-ref.png',staff:'manager-ref.png'};
+document.querySelectorAll('[data-role]').forEach(button=>button.addEventListener('click',()=>{const role=button.dataset.role;document.querySelectorAll('[data-role]').forEach(item=>item.setAttribute('aria-selected',String(item===button)));document.getElementById('reference').src='../../'+references[role];document.getElementById('reference').alt=role+' reference';document.getElementById('capture').src=role+'-final.png';document.getElementById('capture').alt=role+' native dashboard';document.getElementById('fullReference').href='../../'+references[role];document.getElementById('fullCapture').href=role+'-final.png';document.getElementById('earlier').href=role+'-pass1.png';}));
+</script>
+</html>
